@@ -170,28 +170,37 @@ class SampleForecastGenerator(ForecastGenerator):
         **kwargs
     ) -> Iterator[Forecast]:
         for batch in inference_data_loader:
+
             inputs = [batch[k] for k in input_names]
-            outputs = predict_to_numpy(prediction_net, inputs)
+            (outputs, px) = predict_to_numpy(prediction_net, inputs)
+            
             if output_transform is not None:
                 outputs = output_transform(batch, outputs)
             if num_samples:
                 num_collected_samples = outputs[0].shape[0]
                 collected_samples = [outputs]
+                collected_px = [px]
                 while num_collected_samples < num_samples:
-                    outputs = predict_to_numpy(prediction_net, inputs)
+                    (outputs, px) = predict_to_numpy(prediction_net, inputs)
                     if output_transform is not None:
                         outputs = output_transform(batch, outputs)
                     collected_samples.append(outputs)
+                    collected_px.append(px)
                     num_collected_samples += outputs[0].shape[0]
                 outputs = [
                     np.concatenate(s)[:num_samples]
                     for s in zip(*collected_samples)
                 ]
+                outputs_px = [
+                    np.concatenate(s)[:num_samples]
+                    for s in zip(*collected_px)
+                ]
                 assert len(outputs[0]) == num_samples
             i = -1
-            for i, output in enumerate(outputs):
+            for i, (output, output_px) in enumerate(zip(outputs, outputs_px)):
                 yield SampleForecast(
                     output,
+                    output_px,
                     start_date=batch["forecast_start"][i],
                     freq=freq,
                     item_id=batch[FieldName.ITEM_ID][i]

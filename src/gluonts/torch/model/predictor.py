@@ -35,7 +35,9 @@ from gluonts.transform import Transformation
 
 @predict_to_numpy.register(nn.Module)
 def _(prediction_net: nn.Module, inputs: torch.Tensor) -> np.ndarray:
-    return prediction_net(*inputs).cpu().numpy()
+    (forward_flow, px) = prediction_net(*inputs)
+
+    return forward_flow.cpu().numpy(), px.cpu().numpy()
 
 
 class PyTorchPredictor(Predictor):

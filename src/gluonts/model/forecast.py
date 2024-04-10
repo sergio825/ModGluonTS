@@ -325,6 +325,7 @@ class SampleForecast(Forecast):
     def __init__(
         self,
         samples: np.ndarray,
+        log_prob: np.ndarray,
         start_date: pd.Timestamp,
         freq: str,
         item_id: Optional[str] = None,
@@ -344,6 +345,7 @@ class SampleForecast(Forecast):
         self._dim = None
         self.item_id = item_id
         self.info = info
+        self.log_prob = log_prob
 
         assert isinstance(
             start_date, pd.Timestamp
