@@ -585,6 +585,7 @@ class MultivariateEvaluator(Evaluator):
     ) -> Iterator[Forecast]:
         for forecast in forecast_iterator:
             yield forecast.copy_dim(dim)
+        
 
     @staticmethod
     def extract_aggregate_target(

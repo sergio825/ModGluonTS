@@ -167,40 +167,52 @@ class SampleForecastGenerator(ForecastGenerator):
         freq: str,
         output_transform: Optional[OutputTransform],
         num_samples: Optional[int],
+        a_scalar,
         **kwargs
     ) -> Iterator[Forecast]:
         for batch in inference_data_loader:
-
+            print(f"input: {input_names}")
             inputs = [batch[k] for k in input_names]
-            (outputs, px) = predict_to_numpy(prediction_net, inputs)
+            outputs, log_probs, log_probs_a = predict_to_numpy(prediction_net, inputs, a_scalar)
             
             if output_transform is not None:
                 outputs = output_transform(batch, outputs)
             if num_samples:
                 num_collected_samples = outputs[0].shape[0]
                 collected_samples = [outputs]
-                collected_px = [px]
+                collected_logprobs = [log_probs]
+                collected_logprobs_a = [log_probs_a]
                 while num_collected_samples < num_samples:
-                    (outputs, px) = predict_to_numpy(prediction_net, inputs)
+    
+                    outputs, log_probs, log_probs_a = predict_to_numpy(prediction_net, inputs, a_scalar)
                     if output_transform is not None:
                         outputs = output_transform(batch, outputs)
                     collected_samples.append(outputs)
-                    collected_px.append(px)
+                    collected_logprobs.append(log_probs)
+                    collected_logprobs_a.append(log_probs_a)
                     num_collected_samples += outputs[0].shape[0]
                 outputs = [
                     np.concatenate(s)[:num_samples]
                     for s in zip(*collected_samples)
                 ]
-                outputs_px = [
+
+                log_probs = [
                     np.concatenate(s)[:num_samples]
-                    for s in zip(*collected_px)
+                    for s in zip(*collected_logprobs)
+                ]
+                log_probs_a = [
+                    np.concatenate(s)[:num_samples]
+                    for s in zip(*collected_logprobs_a)
                 ]
                 assert len(outputs[0]) == num_samples
             i = -1
-            for i, (output, output_px) in enumerate(zip(outputs, outputs_px)):
+            #for i, (output, log_prob, log_aprob) in enumerate(zip(outputs, log_probs, log_aprobs)):
+            #for i, output in enumerate(outputs):
+            for i, (output, log_prob, log_prob_a) in enumerate(zip(outputs, log_probs, log_probs_a)):
                 yield SampleForecast(
-                    output,
-                    output_px,
+                    samples = output,
+                    log_prob = log_prob,
+                    log_prob_a = log_prob_a,
                     start_date=batch["forecast_start"][i],
                     freq=freq,
                     item_id=batch[FieldName.ITEM_ID][i]
