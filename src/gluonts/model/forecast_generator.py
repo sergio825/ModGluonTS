@@ -171,7 +171,6 @@ class SampleForecastGenerator(ForecastGenerator):
     ) -> Iterator[Forecast]:
         for batch in inference_data_loader:
             inputs = [batch[k] for k in input_names]
-            #outputs, log_probs, log_probs_a = predict_to_numpy(prediction_net, inputs, a_scalar)
             outputs, log_probs = predict_to_numpy(prediction_net, inputs)
             
             if output_transform is not None:
@@ -180,16 +179,13 @@ class SampleForecastGenerator(ForecastGenerator):
                 num_collected_samples = outputs[0].shape[0]
                 collected_samples = [outputs]
                 collected_logprobs = [log_probs]
-                #collected_logprobs_a = [log_probs_a]
                 while num_collected_samples < num_samples:
     
-                    #outputs, log_probs, log_probs_a = predict_to_numpy(prediction_net, inputs, a_scalar)
                     outputs, log_probs = predict_to_numpy(prediction_net, inputs)
                     if output_transform is not None:
                         outputs = output_transform(batch, outputs)
                     collected_samples.append(outputs)
                     collected_logprobs.append(log_probs)
-                    #collected_logprobs_a.append(log_probs_a)
                     num_collected_samples += outputs[0].shape[0]
                 outputs = [
                     np.concatenate(s)[:num_samples]
@@ -201,20 +197,12 @@ class SampleForecastGenerator(ForecastGenerator):
                     for s in zip(*collected_logprobs)
                 ]
 
-                #log_probs_a = [
-                 #   np.concatenate(s)[:num_samples]
-                  #  for s in zip(*collected_logprobs_a)
-                #]
-
                 assert len(outputs[0]) == num_samples
             i = -1
-            #for i, (output, log_prob, log_aprob) in enumerate(zip(outputs, log_probs, log_aprobs)):
-            #for i, output in enumerate(outputs):
             for i, (output, log_prob) in enumerate(zip(outputs, log_probs)):
                 yield SampleForecast(
                     samples = output,
                     log_prob = log_prob,
-                    #log_prob_a = log_prob_a,
                     start_date=batch["forecast_start"][i],
                     freq=freq,
                     item_id=batch[FieldName.ITEM_ID][i]

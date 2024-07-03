@@ -35,7 +35,6 @@ from gluonts.transform import AdhocTransform
 def make_evaluation_predictions(
     dataset: Dataset,
     predictor: Predictor,
-    a_scalar: float,
     num_samples: int = 100,
 ) -> Tuple[Iterator[Forecast], Iterator[pd.Series]]:
     """
@@ -102,7 +101,7 @@ def make_evaluation_predictions(
     dataset_trunc = AdhocTransform(truncate_target).apply(dataset)
 
     return (
-        predictor.predict(a_scalar, dataset_trunc, num_samples=num_samples),
+        predictor.predict(dataset_trunc, num_samples=num_samples),
         ts_iter(dataset),
     )
 

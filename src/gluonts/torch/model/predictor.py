@@ -35,9 +35,8 @@ from gluonts.transform import Transformation
 
 @predict_to_numpy.register(nn.Module)
 def _(prediction_net: nn.Module, inputs: torch.Tensor, a) -> np.ndarray:
-    #muestras, log_probs, log_aprobs = prediction_net(*inputs)
-    muestras, log_probs, log_probs_a = prediction_net(a,*inputs)
-    return muestras.cpu().numpy(), log_probs.cpu().numpy(), log_probs_a.cpu().numpy()
+    muestras, log_probs = prediction_net(a,*inputs)
+    return muestras.cpu().numpy(), log_probs.cpu().numpy()
 
 
 class PyTorchPredictor(Predictor):
@@ -69,7 +68,7 @@ class PyTorchPredictor(Predictor):
         return self
 
     def predict(
-        self, a, dataset: Dataset,  num_samples: Optional[int] = None
+        self, dataset: Dataset,  num_samples: Optional[int] = None
     ) -> Iterator[Forecast]:
         inference_data_loader = InferenceDataLoader(
             dataset,
@@ -87,8 +86,7 @@ class PyTorchPredictor(Predictor):
                 input_names=self.input_names,
                 freq=self.freq,
                 output_transform=self.output_transform,
-                num_samples=num_samples,
-                a_scalar = a
+                num_samples=num_samples
             )
 
     def __eq__(self, that):

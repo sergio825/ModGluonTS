@@ -326,7 +326,6 @@ class SampleForecast(Forecast):
         self,
         samples: np.ndarray,
         log_prob: Optional[np.ndarray],
-        log_prob_a : np.ndarray,
         start_date: pd.Timestamp,
         freq: str,
         item_id: Optional[str] = None,
@@ -347,7 +346,6 @@ class SampleForecast(Forecast):
         self.item_id = item_id
         self.info = info
         self.log_prob = log_prob
-        self.log_prob_a = log_prob_a
 
         assert isinstance(
             start_date, pd.Timestamp
@@ -410,12 +408,10 @@ class SampleForecast(Forecast):
                 f" target_dim={target_dim}"
             )
             samples = self.samples[:, :, dim]
-            #log_prob = self.log_prob[:,:, dim]
 
         return SampleForecast(
             samples=samples,
             log_prob = self.log_prob,
-            log_prob_a = self.log_prob_a,
             start_date=self.start_date,
             freq=self.freq,
             item_id=self.item_id,
@@ -431,7 +427,6 @@ class SampleForecast(Forecast):
         return SampleForecast(
             samples=samples,
             log_prob = self.log_prob,
-            log_prob_a = self.log_prob_a,
             start_date=self.start_date,
             freq=self.freq,
             item_id=self.item_id,
