@@ -34,8 +34,8 @@ from gluonts.transform import Transformation
 
 
 @predict_to_numpy.register(nn.Module)
-def _(prediction_net: nn.Module, inputs: torch.Tensor, a) -> np.ndarray:
-    muestras, log_probs = prediction_net(a,*inputs)
+def _(prediction_net: nn.Module, inputs: torch.Tensor) -> np.ndarray:
+    muestras, log_probs = prediction_net(*inputs)
     return muestras.cpu().numpy(), log_probs.cpu().numpy()
 
 
